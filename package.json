@@ -1,0 +1,19 @@
+{
+  "name": "viewr",
+  "version": "0.0.1",
+  "description": "Display html by making a post request to a local server.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Daniel Fudala<fudimi@gmail.com>",
+  "license": "ISC",
+  "bin": {
+    "viewr": "bin/viewr.js"
+  },
+  "preferGlobal": true,
+  "dependencies": {
+    "lodash": "4.17.4",
+    "websocket": "1.0.24"
+  }
+}

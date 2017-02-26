@@ -1,0 +1,81 @@
+<html>
+<title>RENDERER</title>
+<body>
+    <div id="main">
+        <div>
+            <p>Waiting for data.</p>
+            <p>try: curl localhost:${rendererPort} -d Hello</p>
+        </div>
+    </div>
+    <style>
+        
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000;
+            margin: 0;
+            padding: 10px;
+            color: #ccc;
+            font-family: courier;
+            font-size: 12px;
+        }
+
+        #main {
+            width: 100%;
+            height: 100%;
+            background-color: #111;
+            border: 1px solid #222;
+        }
+
+        #main div {
+            padding: 10px;
+        }
+
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/4.1.0/rx.all.js"></script>
+    <script>
+
+        const {
+            Observable: {defer, just, create, fromEvent},
+            CompositeDisposable
+        } = Rx
+
+        const PORT = ${socketPort}
+        
+        const main = document.getElementById('main')
+
+        const stream$ = defer(() => {
+        
+            return create(observer => {
+
+                    const ws = new WebSocket('ws://localhost:' + PORT, ['json'])
+                    const error$ = fromEvent(ws, 'error')
+                    const close$ = fromEvent(ws, 'close')
+        
+                    const message$ = fromEvent(ws, 'message')
+                        .map(message => JSON.parse(message.data))
+                        .catch(e => just(null))
+                        .filter(Boolean)
+
+                    return new CompositeDisposable(
+                        message$.subscribe(observer),
+                        close$.subscribe(() => {
+
+                            observer.onError(new Error('Socket disconnected'))
+                        })
+                    )
+                    
+                })
+                .share()
+            })
+            .retryWhen(error$ => error$.delay(1000))
+
+        stream$.subscribe(message => {
+            main.innerHTML = message
+        }, e=> console.error(e))
+
+    </script>
+</body>
+</html>
